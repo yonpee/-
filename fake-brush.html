@@ -93,4 +93,462 @@ h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px
 .setting-label { font-size: 14px; color: var(--muted); }
 .setting-value { display: flex; align-items: center; gap: 12px; }
 .counter-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 18px; cursor: pointer; transition: border-color 0.15s; display: flex; align-items: center; justify-content: center; }
-.counter-btn:hover { border-color: var(--accent2); color: var(--accent2​​​​​​​​​​​​​​​​
+.counter-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.counter-display { font-family: 'Bebas Neue', sans-serif; font-size: 24px; min-width: 32px; text-align: center; color: var(--accent3); }
+
+.reveal-card { background: var(--panel); border-radius: 20px; padding: 40px 24px; text-align: center; border: 2px solid var(--border); position: relative; overflow: hidden; }
+.reveal-card.impostor-reveal { border-color: var(--impostor); }
+.reveal-card.crew-reveal { border-color: var(--crew); }
+.reveal-glow-impostor { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,60,90,0.12), transparent 70%); pointer-events: none; }
+.reveal-glow-crew { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,229,255,0.10), transparent 70%); pointer-events: none; }
+.role-badge { display: inline-block; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 4px; padding: 4px 16px; border-radius: 100px; margin-bottom: 16px; }
+.role-badge.impostor { background: rgba(255,60,90,0.2); color: var(--impostor); border: 1px solid var(--impostor); }
+.role-badge.crew { background: rgba(0,229,255,0.15); color: var(--crew); border: 1px solid var(--crew); }
+.player-reveal-name { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 4px; margin-bottom: 8px; }
+.reveal-instruction { color: var(--muted); font-size: 13px; margin-bottom: 20px; line-height: 1.8; }
+.theme-display { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 16px 0 20px; }
+.theme-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.theme-word { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 4px; color: var(--accent3); line-height: 1; }
+.theme-word.impostor-word { color: var(--impostor); }
+
+.drawing-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+.current-drawer { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; }
+.timer-display { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--accent3); min-width: 64px; text-align: right; transition: color 0.3s; }
+.timer-display.urgent { color: var(--accent); animation: pulse 0.5s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.5; } }
+
+#canvas-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); cursor: crosshair; touch-action: none; background: #fff; }
+#drawing-canvas { display: block; width: 100%; }
+
+.tools-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.color-btn { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: transform 0.12s, border-color 0.15s; flex-shrink: 0; }
+.color-btn.active { border-color: #fff; transform: scale(1.2); }
+.color-btn:hover { transform: scale(1.15); }
+.size-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 6px 12px; font-size: 13px; cursor: pointer; transition: border-color 0.15s; }
+.size-btn.active { border-color: var(--accent2); color: var(--accent2); }
+.btn-eraser { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); padding: 7px 14px; font-size: 13px; cursor: pointer; }
+.btn-eraser.active { border-color: var(--accent3); color: var(--accent3); }
+.btn-clear { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); padding: 7px 14px; font-size: 12px; cursor: pointer; margin-left: auto; }
+.btn-clear:hover { border-color: var(--accent); color: var(--accent); }
+
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin: 16px 0; }
+.gallery-item { background: var(--bg); border: 2px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+.gallery-item:hover { transform: translateY(-3px); }
+.gallery-item.voted { border-color: var(--accent); }
+.gallery-item img { width: 100%; display: block; background: #fff; }
+.gallery-name { text-align: center; padding: 8px; font-size: 13px; font-weight: 700; }
+.vote-count { text-align: center; padding: 4px 8px 8px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); }
+
+.result-banner { text-align: center; padding: 32px 24px; border-radius: 20px; margin-bottom: 20px; }
+.result-banner.crew-win { background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(0,200,100,0.1)); border: 2px solid var(--crew); }
+.result-banner.impostor-win { background: linear-gradient(135deg, rgba(255,60,90,0.12), rgba(255,140,0,0.08)); border: 2px solid var(--impostor); }
+.result-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 8vw, 64px); letter-spacing: 4px; line-height: 1; margin-bottom: 8px; }
+.result-sub { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+.reveal-list { display: flex; flex-direction: column; gap: 10px; }
+.reveal-row { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.reveal-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 20px; flex-shrink: 0; }
+.reveal-avatar.crew-av { background: rgba(0,229,255,0.15); color: var(--crew); border: 1px solid var(--crew); }
+.reveal-avatar.imp-av { background: rgba(255,60,90,0.15); color: var(--impostor); border: 1px solid var(--impostor); }
+.reveal-info { flex: 1; }
+.reveal-pname { font-weight: 700; font-size: 15px; }
+.reveal-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.reveal-tag { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px; padding: 3px 10px; border-radius: 100px; }
+.reveal-tag.imp-tag { background: rgba(255,60,90,0.2); color: var(--impostor); }
+.reveal-tag.crew-tag { background: rgba(0,229,255,0.1); color: var(--crew); }
+
+.ai-result-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.ai-result-item:last-child { border-bottom: none; }
+.ai-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #fff; flex-shrink: 0; }
+.ai-name { font-weight: 700; font-size: 14px; }
+.ai-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.ai-match { font-family: 'Bebas Neue', sans-serif; font-size: 16px; margin-left: auto; padding: 4px 10px; border-radius: 8px; }
+.ai-match.match { background: rgba(0,229,255,0.15); color: var(--crew); }
+.ai-match.nomatch { background: rgba(255,60,90,0.15); color: var(--impostor); }
+
+.progress-dots { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+.dot.done { background: var(--accent2); }
+.dot.active { background: var(--accent3); }
+
+.hidden { display: none !important; }
+.mt16 { margin-top: 16px; }
+.mt8 { margin-top: 8px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--muted); font-size: 13px; }
+.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 20px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">FAKE BRUSH</div>
+    <div class="tagline">お絵かきサボタージュゲーム</div>
+  </header>
+
+  <div id="screen-setup" class="screen active">
+    <div class="card">
+      <h2>PLAYERS</h2>
+      <div class="player-list" id="player-list"></div>
+      <button class="btn btn-secondary" id="btn-add-player" style="font-size:14px;padding:10px 20px;">＋ プレイヤーを追加</button>
+    </div>
+    <div class="card">
+      <h2>SETTINGS</h2>
+      <div class="setting-row">
+        <span class="setting-label">インポスター人数</span>
+        <div class="setting-value">
+          <button class="counter-btn" id="imp-minus">－</button>
+          <div class="counter-display" id="imp-count">1</div>
+          <button class="counter-btn" id="imp-plus">＋</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">お絵かき時間（秒）</span>
+        <div class="setting-value">
+          <button class="counter-btn" id="time-minus">－</button>
+          <div class="counter-display" id="time-count">60</div>
+          <button class="counter-btn" id="time-plus">＋</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-start-game" style="font-size:22px;padding:18px;">ゲームスタート！</button>
+  </div>
+
+  <div id="screen-reveal" class="screen">
+    <div class="progress-dots" id="reveal-dots"></div>
+    <div class="reveal-card" id="reveal-card">
+      <div id="reveal-glow"></div>
+      <div class="role-badge" id="reveal-badge"></div>
+      <div class="player-reveal-name" id="reveal-name"></div>
+      <div class="reveal-instruction" id="reveal-instruction"></div>
+      <div class="theme-display">
+        <div class="theme-label">あなたのお題</div>
+        <div class="theme-word" id="reveal-theme"></div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-reveal-next">確認したら次へ →</button>
+    </div>
+  </div>
+
+  <div id="screen-draw" class="screen">
+    <div class="progress-dots" id="draw-dots"></div>
+    <div class="drawing-header">
+      <div>
+        <div class="text-muted" style="font-size:12px;letter-spacing:2px;">NOW DRAWING</div>
+        <div class="current-drawer" id="current-drawer-name"></div>
+      </div>
+      <div class="timer-display" id="timer-display">60</div>
+    </div>
+    <div id="canvas-wrap">
+      <canvas id="drawing-canvas" width="640" height="400"></canvas>
+    </div>
+    <div class="tools-row">
+      <button class="color-btn active" style="background:#1a1a1a;" data-color="#1a1a1a"></button>
+      <button class="color-btn" style="background:#e63946;" data-color="#e63946"></button>
+      <button class="color-btn" style="background:#2196f3;" data-color="#2196f3"></button>
+      <button class="color-btn" style="background:#4caf50;" data-color="#4caf50"></button>
+      <button class="color-btn" style="background:#ff9800;" data-color="#ff9800"></button>
+      <button class="color-btn" style="background:#9c27b0;" data-color="#9c27b0"></button>
+      <button class="color-btn" style="background:#f8bbd0;" data-color="#f8bbd0"></button>
+      <button class="size-btn active" data-size="4">細</button>
+      <button class="size-btn" data-size="10">中</button>
+      <button class="size-btn" data-size="22">太</button>
+      <button class="btn-eraser" id="btn-eraser">消しゴム</button>
+      <button class="btn-clear" id="btn-clear">クリア</button>
+    </div>
+    <div class="mt16">
+      <button class="btn btn-cyan btn-full" id="btn-done-draw" style="font-size:20px;">描き終わった！次へ</button>
+    </div>
+    <p class="text-muted text-center mt8" style="font-size:11px;">※ 他のプレイヤーには見せないでね</p>
+  </div>
+
+  <div id="screen-vote" class="screen">
+    <div class="card">
+      <h2>🔍 VOTE — インポスターは誰だ？</h2>
+      <p class="text-muted" style="margin-bottom:16px;">みんなで絵を見て話し合おう！怪しいと思う人をタップして投票。</p>
+      <div class="gallery-grid" id="vote-gallery"></div>
+      <div class="mt16 text-muted text-center" id="vote-status"></div>
+    </div>
+    <button class="btn btn-primary btn-full hidden" id="btn-to-result" style="font-size:20px;padding:16px;">結果を見る</button>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-banner" id="result-banner">
+      <div class="result-title" id="result-title"></div>
+      <div class="result-sub" id="result-sub"></div>
+    </div>
+    <div class="card">
+      <h2>AI 判定</h2>
+      <p class="text-muted" style="margin-bottom:12px;font-size:13px;">AIが各プレイヤーの絵のテーマを推測した結果：</p>
+      <div id="ai-results-list"><div class="spinner"></div></div>
+    </div>
+    <div class="card">
+      <h2>正体公開</h2>
+      <div class="reveal-list" id="reveal-list"></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+      <button class="btn btn-primary" style="flex:1;font-size:18px;" id="btn-next-round">もう一回！</button>
+      <button class="btn btn-secondary" style="flex:1;font-size:18px;" id="btn-back-setup">設定に戻る</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const THEME_PAIRS = [
+  ["りんご", "みかん"], ["猫", "犬"], ["サメ", "イルカ"],
+  ["電車", "バス"], ["山", "丘"], ["太陽", "月"],
+  ["ハンバーガー", "ホットドッグ"], ["ピアノ", "ギター"],
+  ["飛行機", "ヘリコプター"], ["城", "塔"],
+  ["チューリップ", "バラ"], ["クジラ", "サメ"],
+  ["パンダ", "コアラ"], ["スマホ", "タブレット"],
+  ["ラーメン", "うどん"], ["ライオン", "トラ"],
+  ["傘", "カッパ"], ["スニーカー", "ブーツ"],
+  ["冷蔵庫", "電子レンジ"], ["サボテン", "竹"],
+];
+
+let state = {
+  players: [], impostorCount: 1, drawTime: 60,
+  impostors: [], crewTheme: '', impostorTheme: '',
+  drawings: {}, votes: {}, revealIndex: 0, drawIndex: 0,
+};
+
+function shuffle(arr) { const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+function show(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function makeDots(containerId, total, current) {
+  const c=document.getElementById(containerId);c.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('div');d.className='dot'+(i<current?' done':i===current?' active':'');c.appendChild(d);}
+}
+
+function renderPlayerList() {
+  const list=document.getElementById('player-list');list.innerHTML='';
+  state.players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='player-row';
+    row.innerHTML=`<div class="player-num">${i+1}</div><input class="player-input" placeholder="プレイヤー${i+1}の名前" value="${p}"><button class="btn-remove" data-i="${i}">✕</button>`;
+    row.querySelector('input').addEventListener('input',e=>{state.players[i]=e.target.value.trim();});
+    row.querySelector('.btn-remove').addEventListener('click',()=>{state.players.splice(i,1);renderPlayerList();});
+    list.appendChild(row);
+  });
+}
+for(let i=0;i<4;i++) state.players.push('');
+renderPlayerList();
+
+document.getElementById('btn-add-player').addEventListener('click',()=>{if(state.players.length>=8)return;state.players.push('');renderPlayerList();});
+
+let impCount=1,timeCount=60;
+document.getElementById('imp-minus').addEventListener('click',()=>{if(impCount>1){impCount--;document.getElementById('imp-count').textContent=impCount;}});
+document.getElementById('imp-plus').addEventListener('click',()=>{if(impCount<2){impCount++;document.getElementById('imp-count').textContent=impCount;}});
+document.getElementById('time-minus').addEventListener('click',()=>{if(timeCount>30){timeCount-=15;document.getElementById('time-count').textContent=timeCount;}});
+document.getElementById('time-plus').addEventListener('click',()=>{if(timeCount<120){timeCount+=15;document.getElementById('time-count').textContent=timeCount;}});
+
+document.getElementById('btn-start-game').addEventListener('click',()=>{
+  const named=state.players.filter(p=>p.length>0);
+  if(named.length<3){alert('プレイヤーは3人以上必要です！');return;}
+  state.players=named;state.impostorCount=impCount;state.drawTime=timeCount;
+  startGame();
+});
+
+function startGame() {
+  const pair=THEME_PAIRS[Math.floor(Math.random()*THEME_PAIRS.length)];
+  state.crewTheme=pair[0];state.impostorTheme=pair[1];
+  const shuffled=shuffle(state.players);
+  state.impostors=shuffled.slice(0,state.impostorCount);
+  state.drawings={};state.votes={};state.revealIndex=0;state.drawIndex=0;
+  showReveal(0);
+}
+
+function showReveal(idx) {
+  const player=state.players[idx];
+  const isImpostor=state.impostors.includes(player);
+  makeDots('reveal-dots',state.players.length,idx);
+  const card=document.getElementById('reveal-card');
+  card.className='reveal-card '+(isImpostor?'impostor-reveal':'crew-reveal');
+  document.getElementById('reveal-glow').className=isImpostor?'reveal-glow-impostor':'reveal-glow-crew';
+  document.getElementById('reveal-badge').className='role-badge '+(isImpostor?'impostor':'crew');
+  document.getElementById('reveal-badge').textContent=isImpostor?'IMPOSTOR':'CREW';
+  document.getElementById('reveal-name').textContent=player||`Player ${idx+1}`;
+  document.getElementById('reveal-name').style.color=isImpostor?'var(--impostor)':'var(--crew)';
+  const themeEl=document.getElementById('reveal-theme');
+  themeEl.textContent=isImpostor?state.impostorTheme:state.crewTheme;
+  themeEl.className='theme-word '+(isImpostor?'impostor-word':'');
+  document.getElementById('reveal-instruction').textContent=isImpostor
+    ?'⚠️ あなたはインポスター！クルーに気づかれないよう、似ているけど違うテーマを描いてください。'
+    :'✅ あなたはクルー！お題の絵を丁寧に描いてください。インポスターを見つけよう！';
+  show('screen-reveal');
+}
+
+document.getElementById('btn-reveal-next').addEventListener('click',()=>{
+  state.revealIndex++;
+  if(state.revealIndex<state.players.length) showReveal(state.revealIndex);
+  else startDrawing(0);
+});
+
+let canvas,ctx,drawing=false,currentColor='#1a1a1a',currentSize=4,erasing=false;
+let timerInterval=null,timeLeft=60;
+
+function startDrawing(idx) {
+  state.drawIndex=idx;
+  const player=state.players[idx];
+  const isImpostor=state.impostors.includes(player);
+  makeDots('draw-dots',state.players.length,idx);
+  document.getElementById('current-drawer-name').textContent=player||`Player ${idx+1}`;
+  document.getElementById('current-drawer-name').style.color=isImpostor?'var(--impostor)':'var(--crew)';
+  canvas=document.getElementById('drawing-canvas');
+  ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  erasing=false;currentColor='#1a1a1a';currentSize=4;
+  document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.color-btn')[0].classList.add('active');
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.size-btn')[0].classList.add('active');
+  document.getElementById('btn-eraser').classList.remove('active');
+  timeLeft=state.drawTime;updateTimer();clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{timeLeft--;updateTimer();if(timeLeft<=0){clearInterval(timerInterval);doneDraw();}},1000);
+  show('screen-draw');
+}
+
+function updateTimer() {
+  const el=document.getElementById('timer-display');
+  el.textContent=timeLeft;
+  el.className='timer-display'+(timeLeft<=10?' urgent':'');
+}
+
+function getPos(e) {
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=canvas.width/rect.width,scaleY=canvas.height/rect.height;
+  const src=e.touches?e.touches[0]:e;
+  return{x:(src.clientX-rect.left)*scaleX,y:(src.clientY-rect.top)*scaleY};
+}
+
+canvas=document.getElementById('drawing-canvas');
+canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+canvas.addEventListener('mousemove',e=>{
+  if(!drawing)return;const p=getPos(e);
+  ctx.lineWidth=erasing?currentSize*4:currentSize;ctx.strokeStyle=erasing?'#ffffff':currentColor;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);
+});
+canvas.addEventListener('mouseup',()=>drawing=false);
+canvas.addEventListener('mouseleave',()=>drawing=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();if(!drawing)return;const p=getPos(e);
+  ctx.lineWidth=erasing?currentSize*4:currentSize;ctx.strokeStyle=erasing?'#ffffff':currentColor;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);
+},{passive:false});
+canvas.addEventListener('touchend',()=>drawing=false);
+
+document.querySelectorAll('.color-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{currentColor=btn.dataset.color;erasing=false;
+    document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+    document.getElementById('btn-eraser').classList.remove('active');});
+});
+document.querySelectorAll('.size-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{currentSize=parseInt(btn.dataset.size);
+    document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+document.getElementById('btn-eraser').addEventListener('click',()=>{
+  erasing=!erasing;document.getElementById('btn-eraser').classList.toggle('active',erasing);
+});
+document.getElementById('btn-clear').addEventListener('click',()=>{ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);});
+document.getElementById('btn-done-draw').addEventListener('click',doneDraw);
+
+function doneDraw() {
+  clearInterval(timerInterval);
+  const player=state.players[state.drawIndex];
+  state.drawings[player]=canvas.toDataURL('image/png');
+  state.drawIndex++;
+  if(state.drawIndex<state.players.length) startDrawing(state.drawIndex);
+  else showVote();
+}
+
+function showVote() {
+  const gallery=document.getElementById('vote-gallery');gallery.innerHTML='';
+  const shuffledPlayers=shuffle(state.players);
+  state.votes={};
+  let voterIndex=0;
+  function renderVoteState() {
+    gallery.innerHTML='';
+    shuffledPlayers.forEach(p=>{
+      const item=document.createElement('div');item.className='gallery-item';
+      const voteTotal=Object.values(state.votes).filter(v=>v===p).length;
+      item.innerHTML=`<img src="${state.drawings[p]}" alt="${p}"><div class="gallery-name">${p}</div><div class="vote-count">${voteTotal>0?'🗳 '+voteTotal:''}</div>`;
+      item.addEventListener('click',()=>{
+        if(voterIndex>=state.players.length)return;
+        const voter=state.players[voterIndex];
+        if(voter===p){alert('自分には投票できません！');return;}
+        state.votes[voter]=p;voterIndex++;
+        document.getElementById('vote-status').textContent=voterIndex<state.players.length
+          ?`次は ${state.players[voterIndex]} が投票してください（${voterIndex}/${state.players.length}）`:'全員が投票完了！';
+        if(voterIndex>=state.players.length) document.getElementById('btn-to-result').classList.remove('hidden');
+        renderVoteState();
+      });
+      gallery.appendChild(item);
+    });
+  }
+  document.getElementById('vote-status').textContent=`まず ${state.players[0]} が投票してください（0/${state.players.length}）`;
+  document.getElementById('btn-to-result').classList.add('hidden');
+  renderVoteState();
+  show('screen-vote');
+}
+
+document.getElementById('btn-to-result').addEventListener('click',showResult);
+
+async function showResult() {
+  show('screen-result');
+  const voteTally={};
+  state.players.forEach(p=>voteTally[p]=0);
+  Object.values(state.votes).forEach(target=>{voteTally[target]=(voteTally[target]||0)+1;});
+  const maxVotes=Math.max(...Object.values(voteTally));
+  const mostVoted=Object.entries(voteTally).filter(([,v])=>v===maxVotes).map(([k])=>k);
+  const impostorsCaught=state.impostors.every(imp=>mostVoted.includes(imp));
+  const aiResults=await judgeWithAI();
+  const aiImpostorCaught=state.impostors.some(imp=>{const r=aiResults.find(r=>r.player===imp);return r&&!r.matches;});
+  const crewWins=impostorsCaught&&aiImpostorCaught;
+  const impostorWins=!impostorsCaught&&!aiImpostorCaught;
+  const banner=document.getElementById('result-banner');
+  const title=document.getElementById('result-title');
+  const sub=document.getElementById('result-sub');
+  if(impostorWins){banner.className='result-banner impostor-win';title.innerHTML='🔴 IMPOSTOR WINS';title.style.color='var(--impostor)';sub.textContent=`${state.impostors.join(', ')} の完全勝利！`;}
+  else if(crewWins){banner.className='result-banner crew-win';title.innerHTML='🔵 CREW WINS';title.style.color='var(--crew)';sub.textContent='クルーの完全勝利！';}
+  else if(impostorsCaught&&!aiImpostorCaught){banner.className='result-banner crew-win';title.innerHTML='🔵 CREW WINS (半分)';title.style.color='var(--crew)';sub.textContent='投票では当てたけど、AIには絵でバレなかった。';}
+  else{banner.className='result-banner impostor-win';title.innerHTML='🔴 IMPOSTOR WINS (半分)';title.style.color='var(--impostor)';sub.textContent=`AIにはバレたけど、投票では逃げ切った！`;}
+  const aiList=document.getElementById('ai-results-list');aiList.innerHTML='';
+  aiResults.forEach(r=>{
+    const isImp=state.impostors.includes(r.player);
+    const div=document.createElement('div');div.className='ai-result-item';
+    div.innerHTML=`<img class="ai-thumb" src="${state.drawings[r.player]}"><div><div class="ai-name">${r.player} ${isImp?'🔴':'🔵'}</div><div class="ai-label">AIの判定: 「${r.guessed}」</div></div><div class="ai-match ${r.matches?'match':'nomatch'}">${r.matches?'✓ 一致':'✗ 不一致'}</div>`;
+    aiList.appendChild(div);
+  });
+  const revealList=document.getElementById('reveal-list');revealList.innerHTML='';
+  state.players.forEach(p=>{
+    const isImp=state.impostors.includes(p);
+    const myVotes=voteTally[p]||0;
+    const votedFor=state.votes[p]||'棄権';
+    const div=document.createElement('div');div.className='reveal-row';
+    div.innerHTML=`<div class="reveal-avatar ${isImp?'imp-av':'crew-av'}">${p[0]||'?'}</div><div class="reveal-info"><div class="reveal-pname">${p}</div><div class="reveal-detail">お題: ${isImp?state.impostorTheme:state.crewTheme} ／ 得票数: ${myVotes}票 ／ 投票先: ${votedFor}</div></div><div class="reveal-tag ${isImp?'imp-tag':'crew-tag'}">${isImp?'IMPOSTOR':'CREW'}</div>`;
+    revealList.appendChild(div);
+  });
+}
+
+async function judgeWithAI() {
+  const results=[];const correct=state.crewTheme;
+  for(const player of state.players){
+    const imgData=state.drawings[player];
+    if(!imgData){results.push({player,guessed:'？',matches:false});continue;}
+    try{
+      const base64=imgData.split(',')[1];
+      const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:100,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/png',data:base64}},{type:'text',text:`この絵は何を描いたものですか？次の2つのうちどちらに近いか判定してください：「${state.crewTheme}」または「${state.impostorTheme}」。必ず片方の言葉だけを答えてください。`}]}]})});
+      const data=await response.json();
+      const guessed=data.content?.[0]?.text?.trim()||'判定不能';
+      results.push({player,guessed,matches:guessed.includes(correct)});
+    }catch(e){results.push({player,guessed:'エラー',matches:true});}
+  }
+  return results;
+}
+
+document.getElementById('btn-next-round').addEventListener('click',()=>startGame());
+document.getElementById('btn-back-setup').addEventListener('click',()=>show('screen-setup'));
+</script>
+</body>
+</html>
