@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ワード連想インポスター</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+:root {
+  --bg: #0e0e0e;
+  --surface: #181818;
+  --card: #1e1e1e;
+  --border: #2e2e2e;
+  --accent: #c084fc;
+  --accent2: #f0abfc;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --text: #f5f5f5;
+  --muted: #737373;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(192,132,252,0.08), transparent 60%); pointer-events: none; }
+#app { max-width: 720px; margin: 0 auto; padding: 16px 16px 60px; position: relative; }
+header { text-align: center; padding: 28px 0 20px; }
+.logo { font-family: 'Black Han Sans', sans-serif; font-size: clamp(32px, 7vw, 60px); letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 40px rgba(192,132,252,0.4); }
+.tagline { color: var(--muted); font-size: 12px; letter-spacing: 3px; margin-top: 6px; }
+.screen { display: none; }
+.screen.active { display: block; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 14px; }
+h2 { font-family: 'Black Han Sans', sans-serif; font-size: 20px; letter-spacing: 3px; color: var(--accent); margin-bottom: 14px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 13px 28px; border-radius: 8px; border: none; font-family: 'Black Han Sans', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
+.btn:hover { transform: translateY(-2px); }
+.btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 20px rgba(192,132,252,0.3); }
+.btn-green { background: var(--green); color: #000; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+.player-num { font-family: 'Black Han Sans', sans-serif; font-size: 18px; color: var(--muted); width: 24px; }
+.player-input { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 15px; outline: none; }
+.player-input::placeholder { color: var(--muted); }
+.btn-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+.btn-remove:hover { color: var(--red); }
+.role-card { border-radius: 20px; padding: 36px 24px; text-align: center; position: relative; overflow: hidden; margin-bottom: 16px; }
+.role-card.crew { background: linear-gradient(135deg, #1a0a2e, #120820); border: 2px solid var(--accent); }
+.role-card.impostor { background: linear-gradient(135deg, #1a0808, #120606); border: 2px solid var(--red); }
+.role-glow-crew { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(192,132,252,0.1), transparent 70%); }
+.role-glow-imp { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(248,113,113,0.1), transparent 70%); }
+.role-badge-tag { display: inline-block; font-family: 'Black Han Sans', sans-serif; font-size: 11px; letter-spacing: 4px; padding: 4px 16px; border-radius: 100px; margin-bottom: 14px; position: relative; }
+.badge-crew { background: rgba(192,132,252,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.badge-imp { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid var(--red); }
+.role-player-name { font-family: 'Black Han Sans', sans-serif; font-size: 40px; letter-spacing: 4px; margin-bottom: 10px; position: relative; }
+.role-word-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-bottom: 8px; position: relative; }
+.role-word { font-family: 'Black Han Sans', sans-serif; font-size: 52px; letter-spacing: 4px; color: var(--yellow); position: relative; line-height: 1; }
+.role-word.imp-word { color: var(--red); }
+.role-instruction { font-size: 13px; color: var(--muted); margin-top: 14px; line-height: 1.8; position: relative; }
+.word-order { display: flex; flex-direction: column; gap: 10px; }
+.word-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+.word-player { font-weight: 700; font-size: 14px; color: var(--accent); min-width: 80px; }
+.word-input { flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--border); color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 16px; outline: none; padding: 4px 0; }
+.word-input::placeholder { color: var(--muted); }
+.word-input:focus { border-bottom-color: var(--accent); }
+.words-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+.word-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+.word-chip:hover { border-color: var(--accent); transform: translateY(-2px); }
+.word-chip.voted { border-color: var(--red); background: rgba(248,113,113,0.08); }
+.word-chip-name { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.word-chip-word { font-family: 'Black Han Sans', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--accent2); }
+.vote-badge { font-size: 16px; margin-top: 6px; }
+.reveal-row { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+.reveal-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Black Han Sans', sans-serif; font-size: 18px; flex-shrink: 0; }
+.av-crew { background: rgba(192,132,252,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.av-imp { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid var(--red); }
+.reveal-info { flex: 1; }
+.reveal-pname { font-weight: 700; }
+.reveal-detail { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.reveal-tag { font-family: 'Black Han Sans', sans-serif; font-size: 11px; letter-spacing: 2px; padding: 3px 10px; border-radius: 100px; }
+.tag-imp { background: rgba(248,113,113,0.15); color: var(--red); }
+.tag-crew { background: rgba(192,132,252,0.1); color: var(--accent); }
+.result-banner { text-align: center; padding: 32px 24px; border-radius: 16px; margin-bottom: 16px; }
+.banner-crew { background: linear-gradient(135deg, rgba(192,132,252,0.1), rgba(74,222,128,0.06)); border: 2px solid var(--accent); }
+.banner-imp { background: linear-gradient(135deg, rgba(248,113,113,0.1), rgba(251,191,36,0.05)); border: 2px solid var(--red); }
+.result-title { font-family: 'Black Han Sans', sans-serif; font-size: clamp(28px, 7vw, 52px); letter-spacing: 3px; line-height: 1; margin-bottom: 8px; }
+.result-sub { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.prog-row { display: flex; gap: 6px; align-items: center; margin-bottom: 14px; }
+.prog-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.prog-dot.done { background: var(--accent); }
+.prog-dot.active { background: var(--yellow); }
+.prog-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-left: auto; }
+.mt16 { margin-top: 16px; }
+.mt8 { margin-top: 8px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--muted); font-size: 13px; }
+.hidden { display: none !important; }
+.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">WORD IMPOSTOR</div>
+    <div class="tagline">ワード連想インポスター</div>
+  </header>
+  <div id="screen-setup" class="screen active">
+    <div class="card">
+      <h2>PLAYERS</h2>
+      <div class="player-list" id="player-list"></div>
+      <button class="btn btn-outline" id="btn-add-player" style="font-size:13px;padding:9px 18px;">＋ 追加</button>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-start" style="font-size:18px;padding:16px;">スタート！</button>
+  </div>
+  <div id="screen-reveal-role" class="screen">
+    <div class="prog-row" id="prog-reveal"></div>
+    <div class="role-card" id="role-card">
+      <div id="role-glow"></div>
+      <div class="role-badge-tag" id="role-badge"></div>
+      <div class="role-player-name" id="role-player-name"></div>
+      <div class="role-word-label">あなたのワード</div>
+      <div class="role-word" id="role-word"></div>
+      <div class="role-instruction" id="role-instruction"></div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-role-next">確認したら次へ →</button>
+  </div>
+  <div id="screen-word-input" class="screen">
+    <div class="card" style="text-align:center;padding:20px 24px;margin-bottom:16px;border-color:var(--accent);">
+      <div style="font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:8px;">お題ワード（クルー共通）</div>
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:40px;letter-spacing:4px;color:var(--yellow);" id="crew-word-display"></div>
+    </div>
+    <div class="card">
+      <h2>連想ワードを入力</h2>
+      <p class="text-muted" style="margin-bottom:14px;">お題から連想する言葉を1つ入力してください。インポスターはバレないように！</p>
+      <div class="word-order" id="word-inputs"></div>
+      <div class="mt16">
+        <button class="btn btn-primary btn-full" id="btn-submit-words" style="font-size:17px;padding:14px;">全員入力完了！</button>
+      </div>
+    </div>
+  </div>
+  <div id="screen-vote" class="screen">
+    <div class="card" style="text-align:center;padding:20px 24px;margin-bottom:16px;">
+      <div style="font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;">クルーのお題ワード</div>
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:36px;letter-spacing:4px;color:var(--yellow);" id="vote-crew-word"></div>
+    </div>
+    <div class="card">
+      <h2>🔍 インポスターは誰だ？</h2>
+      <p class="text-muted" style="margin-bottom:14px;">みんなの連想ワードを見て話し合おう！ズレてる人をタップして投票。</p>
+      <div class="words-grid" id="words-grid"></div>
+      <div id="vote-status" class="text-muted text-center mt8"></div>
+      <button class="btn btn-primary btn-full hidden mt16" id="btn-to-result" style="font-size:17px;padding:14px;">結果発表！</button>
+    </div>
+  </div>
+  <div id="screen-result" class="screen">
+    <div class="result-banner" id="result-banner">
+      <div class="result-title" id="result-title"></div>
+      <div class="result-sub" id="result-sub"></div>
+    </div>
+    <div class="card">
+      <h2>正体公開</h2>
+      <div id="reveal-list"></div>
+    </div>
+    <div class="flex-gap mt16">
+      <button class="btn btn-primary" style="flex:1;font-size:16px;" id="btn-again">もう一回！</button>
+      <button class="btn btn-outline" style="flex:1;font-size:16px;" id="btn-setup">設定に戻る</button>
+    </div>
+  </div>
+</div>
+<script>
+const WORD_PAIRS = [
+  ["海","砂漠"],["コーヒー","紅茶"],["サッカー","ラグビー"],["東京","大阪"],["夏","冬"],["猫","犬"],["ピザ","パスタ"],["映画","アニメ"],["山","海"],["朝","夜"],["りんご","みかん"],["電車","バス"],["春","秋"],["ギター","ベース"],["ランチ","ディナー"],["スマホ","PC"],["本","漫画"],["サウナ","温泉"],["ビール","ワイン"],["野球","バスケ"],
+];
+let state = { players:[], impostors:[], crewWord:'', impostorWord:'', playerWords:{}, votes:{}, revealIndex:0 };
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function makeProg(id,total,current){const c=document.getElementById(id);c.innerHTML='';for(let i=0;i<total;i++){const d=document.createElement('div');d.className='prog-dot'+(i<current?' done':i===current?' active':'');c.appendChild(d);}const l=document.createElement('div');l.className='prog-label';l.textContent=`${current+1} / ${total}人目`;c.appendChild(l);}
+function renderPlayers(){const list=document.getElementById('player-list');list.innerHTML='';state.players.forEach((p,i)=>{const row=document.createElement('div');row.className='player-row';row.innerHTML=`<div class="player-num">${i+1}</div><input class="player-input" placeholder="プレイヤー${i+1}" value="${p}"><button class="btn-remove" data-i="${i}">✕</button>`;row.querySelector('input').addEventListener('input',e=>state.players[i]=e.target.value.trim());row.querySelector('.btn-remove').addEventListener('click',()=>{state.players.splice(i,1);renderPlayers();});list.appendChild(row);});}
+for(let i=0;i<4;i++)state.players.push('');
+renderPlayers();
+document.getElementById('btn-add-player').addEventListener('click',()=>{if(state.players.length>=8)return;state.players.push('');renderPlayers();});
+document.getElementById('btn-start').addEventListener('click',()=>{const named=state.players.filter(p=>p.length>0);if(named.length<3){alert('3人以上必要です！');return;}state.players=named;const pair=WORD_PAIRS[Math.floor(Math.random()*WORD_PAIRS.length)];state.crewWord=pair[0];state.impostorWord=pair[1];const sh=shuffle(state.players);state.impostors=[sh[0]];state.playerWords={};state.votes={};state.revealIndex=0;showRoleReveal(0);});
+function showRoleReveal(idx){const player=state.players[idx];const isImp=state.impostors.includes(player);makeProg('prog-reveal',state.players.length,idx);const card=document.getElementById('role-card');card.className='role-card '+(isImp?'impostor':'crew');document.getElementById('role-glow').className=isImp?'role-glow-imp':'role-glow-crew';const badge=document.getElementById('role-badge');badge.className='role-badge-tag '+(isImp?'badge-imp':'badge-crew');badge.textContent=isImp?'IMPOSTOR':'CREW';document.getElementById('role-player-name').textContent=player||`P${idx+1}`;document.getElementById('role-player-name').style.color=isImp?'var(--red)':'var(--accent2)';const wordEl=document.getElementById('role-word');wordEl.textContent=isImp?state.impostorWord:state.crewWord;wordEl.className='role-word'+(isImp?' imp-word':'');document.getElementById('role-instruction').textContent=isImp?'⚠️ あなたはインポスター！クルーと違うワードを持っています。バレないように連想ワードを答えてください。':'✅ あなたはクルー！このワードから連想する言葉を1つ答えてください。インポスターを見つけよう！';show('screen-reveal-role');}
+document.getElementById('btn-role-next').addEventListener('click',()=>{state.revealIndex++;if(state.revealIndex<state.players.length)showRoleReveal(state.revealIndex);else startWordInput();});
+function startWordInput(){document.getElementById('crew-word-display').textContent=state.crewWord;const container=document.getElementById('word-inputs');container.innerHTML='';state.players.forEach(p=>{const div=document.createElement('div');div.className='word-row';div.innerHTML=`<div class="word-player">${p}</div><input class="word-input" data-player="${p}" placeholder="連想ワードを入力…">`;container.appendChild(div);});show('screen-word-input');}
+document.getElementById('btn-submit-words').addEventListener('click',()=>{let ok=true;document.querySelectorAll('.word-input').forEach(inp=>{const v=inp.value.trim();if(!v){ok=false;inp.style.borderBottomColor='var(--red)';}else{state.playerWords[inp.dataset.player]=v;inp.style.borderBottomColor='';}});if(!ok){alert('全員入力してください！');return;}startVote();});
+function startVote(){document.getElementById('vote-crew-word').textContent=state.crewWord;state.votes={};let voterIndex=0;const shuffledPlayers=shuffle([...state.players]);function renderGrid(){const grid=document.getElementById('words-grid');grid.innerHTML='';shuffledPlayers.forEach(p=>{const chip=document.createElement('div');chip.className='word-chip';const myVotes=Object.values(state.votes).filter(v=>v===p).length;chip.innerHTML=`<div class="word-chip-name">${p}</div><div class="word-chip-word">${state.playerWords[p]}</div><div class="vote-badge">${myVotes>0?'🗳'.repeat(myVotes):''}</div>`;chip.addEventListener('click',()=>{if(voterIndex>=state.players.length)return;const voter=state.players[voterIndex];if(voter===p){alert('自分には投票できません！');return;}state.votes[voter]=p;voterIndex++;const status=document.getElementById('vote-status');if(voterIndex<state.players.length){status.textContent=`次は ${state.players[voterIndex]} が投票 (${voterIndex}/${state.players.length})`;}else{status.textContent='全員投票完了！';document.getElementById('btn-to-result').classList.remove('hidden');}renderGrid();});grid.appendChild(chip);});document.getElementById('vote-status').textContent=voterIndex<state.players.length?`まず ${state.players[0]} が投票してください (0/${state.players.length})`:'全員投票完了！';}document.getElementById('btn-to-result').classList.add('hidden');renderGrid();show('screen-vote');}
+document.getElementById('btn-to-result').addEventListener('click',showResult);
+function showResult(){const tally={};state.players.forEach(p=>tally[p]=0);Object.values(state.votes).forEach(t=>{tally[t]=(tally[t]||0)+1;});const maxVotes=Math.max(...Object.values(tally));const mostVoted=Object.entries(tally).filter(([,v])=>v===maxVotes).map(([k])=>k);const caught=state.impostors.every(imp=>mostVoted.includes(imp));const banner=document.getElementById('result-banner');const title=document.getElementById('result-title');const sub=document.getElementById('result-sub');if(caught){banner.className='result-banner banner-crew';title.textContent='🔵 クルー勝利！';title.style.color='var(--accent)';sub.textContent=`${state.impostors.join('、')} が投票で特定された！クルーのワード「${state.crewWord}」、インポスターのワード「${state.impostorWord}」`;}else{banner.className='result-banner banner-imp';title.textContent='🔴 インポスター勝利！';title.style.color='var(--red)';sub.textContent=`${state.impostors.join('、')} が逃げ切った！クルーのワード「${state.crewWord}」、インポスターのワード「${state.impostorWord}」`;}const revList=document.getElementById('reveal-list');revList.innerHTML='';state.players.forEach(p=>{const isImp=state.impostors.includes(p);const div=document.createElement('div');div.className='reveal-row';div.innerHTML=`<div class="reveal-avatar ${isImp?'av-imp':'av-crew'}">${p[0]||'?'}</div><div class="reveal-info"><div class="reveal-pname">${p}</div><div class="reveal-detail">ワード: 「${isImp?state.impostorWord:state.crewWord}」 → 回答: 「${state.playerWords[p]||'─'}」 ／ 得票: ${tally[p]}票</div></div><div class="reveal-tag ${isImp?'tag-imp':'tag-crew'}">${isImp?'IMPOSTOR':'CREW'}</div>`;revList.appendChild(div);});show('screen-result');}
+function resetGame(){const pair=WORD_PAIRS[Math.floor(Math.random()*WORD_PAIRS.length)];state.crewWord=pair[0];state.impostorWord=pair[1];const sh=shuffle(state.players);state.impostors=[sh[0]];state.playerWords={};state.votes={};state.revealIndex=0;showRoleReveal(0);}
+document.getElementById('btn-again').addEventListener('click',resetGame);
+document.getElementById('btn-setup').addEventListener('click',()=>show('screen-setup'));
+</script>
+</body>
+</html>
