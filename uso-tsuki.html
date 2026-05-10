@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウソつき回答ゲーム</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --card: #1c2128;
+  --border: #30363d;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --yellow: #d29922;
+  --text: #e6edf3;
+  --muted: #8b949e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(88,166,255,0.05), transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(63,185,80,0.04), transparent 60%);
+  pointer-events: none;
+}
+#app { max-width: 720px; margin: 0 auto; padding: 16px 16px 60px; position: relative; }
+header { text-align: center; padding: 28px 0 20px; }
+.logo { font-family: 'Dela Gothic One', cursive; font-size: clamp(32px, 7vw, 64px); letter-spacing: 2px; background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.tagline { color: var(--muted); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+.screen { display: none; }
+.screen.active { display: block; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 14px; }
+h2 { font-family: 'Dela Gothic One', cursive; font-size: 20px; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 13px 28px; border-radius: 8px; border: none; font-family: 'Dela Gothic One', cursive; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-green { background: var(--green); color: #000; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+.player-num { font-family: 'Dela Gothic One', cursive; font-size: 18px; color: var(--muted); width: 24px; }
+.player-input { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 15px; outline: none; }
+.player-input::placeholder { color: var(--muted); }
+.btn-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+.btn-remove:hover { color: var(--red); }
+.question-card { background: linear-gradient(135deg, #1c2128, #161b22); border: 2px solid var(--accent); border-radius: 16px; padding: 28px 24px; text-align: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+.question-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(88,166,255,0.06), transparent 70%); }
+.q-label { font-size: 11px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+.q-text { font-size: clamp(16px, 3.5vw, 22px); font-weight: 900; line-height: 1.6; position: relative; }
+.q-answer { font-family: 'Dela Gothic One', cursive; font-size: 36px; color: var(--green); margin-top: 8px; letter-spacing: 2px; position: relative; }
+.answer-block { margin-bottom: 12px; }
+.answer-player { font-weight: 700; font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+.answer-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 15px; outline: none; transition: border-color 0.2s; }
+.answer-input:focus { border-color: var(--accent); }
+.choices { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.choice-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color 0.15s, background 0.15s, transform 0.1s; text-align: left; }
+.choice-btn:hover { border-color: var(--accent); transform: translateX(4px); }
+.choice-btn.correct { border-color: var(--green); background: rgba(63,185,80,0.1); }
+.choice-btn.wrong { border-color: var(--red); background: rgba(248,81,73,0.08); opacity: 0.7; }
+.choice-index { font-family: 'Dela Gothic One', cursive; font-size: 18px; color: var(--muted); width: 28px; text-align: center; flex-shrink: 0; }
+.choice-text { font-size: 15px; font-weight: 700; flex: 1; }
+.choice-author { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.choice-badge { font-size: 20px; }
+.score-list { display: flex; flex-direction: column; gap: 8px; }
+.score-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.score-name { flex: 1; font-weight: 700; }
+.score-bar-wrap { flex: 2; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.score-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.6s ease; }
+.score-pts { font-family: 'Dela Gothic One', cursive; font-size: 20px; color: var(--yellow); min-width: 40px; text-align: right; }
+.prog-row { display: flex; gap: 6px; align-items: center; margin-bottom: 14px; }
+.prog-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+.prog-dot.done { background: var(--green); }
+.prog-dot.active { background: var(--accent); }
+.prog-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-left: auto; }
+.result-header { text-align: center; padding: 32px 24px; border-radius: 16px; margin-bottom: 16px; }
+.result-header.win { background: linear-gradient(135deg, rgba(63,185,80,0.1), rgba(88,166,255,0.06)); border: 2px solid var(--green); }
+.result-big { font-family: 'Dela Gothic One', cursive; font-size: clamp(28px, 7vw, 52px); letter-spacing: 3px; }
+.result-sub { color: var(--muted); font-size: 14px; margin-top: 8px; line-height: 1.7; }
+.mt16 { margin-top: 16px; }
+.mt8 { margin-top: 8px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--muted); font-size: 13px; }
+.hidden { display: none !important; }
+.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 20px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">ウソつき回答</div>
+    <div class="tagline">本物はどれだ？AIが出す謎の正解を当てろ！</div>
+  </header>
+  <div id="screen-setup" class="screen active">
+    <div class="card">
+      <h2>PLAYERS</h2>
+      <div class="player-list" id="player-list"></div>
+      <button class="btn btn-outline" id="btn-add-player" style="font-size:13px;padding:9px 18px;">＋ 追加</button>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-start" style="font-size:18px;padding:16px;">スタート！</button>
+  </div>
+  <div id="screen-input" class="screen">
+    <div class="prog-row" id="prog-input"></div>
+    <div class="question-card">
+      <div class="q-label">問題</div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="card">
+      <h2>ウソの答えを入力！</h2>
+      <p class="text-muted" style="margin-bottom:14px;">本物っぽいウソを考えて入力してください。バレないように！</p>
+      <div id="answer-inputs"></div>
+      <div class="mt16">
+        <button class="btn btn-primary btn-full" id="btn-submit" style="font-size:17px;padding:14px;">全員入力完了！</button>
+      </div>
+    </div>
+  </div>
+  <div id="screen-vote" class="screen">
+    <div class="question-card">
+      <div class="q-label">問題</div>
+      <div class="q-text" id="vote-q-text"></div>
+    </div>
+    <div class="card">
+      <h2>🔍 本物の答えはどれ？</h2>
+      <p class="text-muted" style="margin-bottom:12px;">どれが本当の答えか当てよう！ウソをついた人の答えを選ばせたら勝ち。</p>
+      <div class="choices" id="choices-list"></div>
+      <div id="vote-status" class="text-muted text-center mt8"></div>
+      <button class="btn btn-green btn-full hidden mt16" id="btn-reveal" style="font-size:17px;padding:14px;">答え合わせ！</button>
+    </div>
+  </div>
+  <div id="screen-reveal" class="screen">
+    <div class="question-card">
+      <div class="q-label">正解</div>
+      <div class="q-text" id="rev-q-text"></div>
+      <div class="q-answer" id="rev-answer"></div>
+    </div>
+    <div class="card">
+      <h2>📊 結果</h2>
+      <div class="choices" id="reveal-choices"></div>
+      <div id="round-points" style="margin-top:14px;"></div>
+    </div>
+    <div class="card">
+      <h2>スコア</h2>
+      <div class="score-list" id="score-list"></div>
+    </div>
+    <button class="btn btn-primary btn-full mt16" id="btn-next-q" style="font-size:17px;padding:14px;"></button>
+  </div>
+  <div id="screen-final" class="screen">
+    <div class="result-header win">
+      <div style="font-size:40px;margin-bottom:8px;">🏆</div>
+      <div class="result-big" id="final-winner"></div>
+      <div class="result-sub" id="final-sub"></div>
+    </div>
+    <div class="card">
+      <h2>最終スコア</h2>
+      <div class="score-list" id="final-scores"></div>
+    </div>
+    <div class="flex-gap mt16">
+      <button class="btn btn-primary" style="flex:1;font-size:16px;" id="btn-again">もう一回！</button>
+      <button class="btn btn-outline" style="flex:1;font-size:16px;" id="btn-setup">設定に戻る</button>
+    </div>
+  </div>
+</div>
+<script>
+const QA = [
+  { q: "タコの心臓はいくつある？", a: "3つ" },
+  { q: "バナナは植物学的には何の仲間？", a: "草（ハーブ）" },
+  { q: "蜂蜜は何年保存できる？", a: "永遠（腐らない）" },
+  { q: "オクトパスの複数形は英語で？", a: "Octopuses（またはOctopodes）" },
+  { q: "キリンの首の骨の数は人間と同じ。その数は？", a: "7本" },
+  { q: "人間の骨で一番小さな骨は体のどこにある？", a: "耳の中（アブミ骨）" },
+  { q: "コアラが1日に眠る時間は？", a: "約22時間" },
+  { q: "ワニの性別は何で決まる？", a: "卵が温められる温度" },
+  { q: "ゴキブリは頭を切り落とされた後どのくらい生きられる？", a: "約1週間" },
+  { q: "アリは体重の何倍もの重さを持てる？", a: "約50倍" },
+  { q: "カタツムリの歯の数は？", a: "約2万5000本" },
+  { q: "フラミンゴの色は何から来ている？", a: "食べる藻やエビに含まれる色素" },
+  { q: "チョコレートの原料カカオ豆、1粒の豆から作れるチョコの量は？", a: "板チョコ約半枚分" },
+  { q: "人間の唾液を一生分集めると何本分のプールになる？", a: "約2本" },
+  { q: "地球上で最も多い動物は？", a: "線虫（せんちゅう）" },
+];
+let state = { players: [], questions: [], currentQ: 0, totalQ: 5, fakeAnswers: {}, votes: {}, scores: {}, shuffledChoices: [] };
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function makeProg(id,total,current){const c=document.getElementById(id);c.innerHTML='';for(let i=0;i<total;i++){const d=document.createElement('div');d.className='prog-dot'+(i<current?' done':i===current?' active':'');c.appendChild(d);}const l=document.createElement('div');l.className='prog-label';l.textContent=`Q${current+1} / ${total}`;c.appendChild(l);}
+function renderPlayers(){const list=document.getElementById('player-list');list.innerHTML='';state.players.forEach((p,i)=>{const row=document.createElement('div');row.className='player-row';row.innerHTML=`<div class="player-num">${i+1}</div><input class="player-input" placeholder="プレイヤー${i+1}" value="${p}"><button class="btn-remove" data-i="${i}">✕</button>`;row.querySelector('input').addEventListener('input',e=>state.players[i]=e.target.value.trim());row.querySelector('.btn-remove').addEventListener('click',()=>{state.players.splice(i,1);renderPlayers();});list.appendChild(row);});}
+for(let i=0;i<4;i++)state.players.push('');
+renderPlayers();
+document.getElementById('btn-add-player').addEventListener('click',()=>{if(state.players.length>=8)return;state.players.push('');renderPlayers();});
+document.getElementById('btn-start').addEventListener('click',()=>{const named=state.players.filter(p=>p.length>0);if(named.length<2){alert('2人以上必要です！');return;}state.players=named;state.scores={};state.players.forEach(p=>state.scores[p]=0);state.questions=shuffle([...QA]).slice(0,Math.min(5,QA.length));state.currentQ=0;startQuestion();});
+function startQuestion(){const q=state.questions[state.currentQ];state.fakeAnswers={};state.votes={};makeProg('prog-input',state.questions.length,state.currentQ);document.getElementById('q-text').textContent=q.q;const container=document.getElementById('answer-inputs');container.innerHTML='';state.players.forEach(p=>{const div=document.createElement('div');div.className='answer-block';div.innerHTML=`<div class="answer-player">${p}</div><input class="answer-input" data-player="${p}" placeholder="本物っぽいウソの答えを入力…">`;container.appendChild(div);});show('screen-input');}
+document.getElementById('btn-submit').addEventListener('click',()=>{let ok=true;document.querySelectorAll('.answer-input').forEach(inp=>{const v=inp.value.trim();if(!v){ok=false;inp.style.borderColor='var(--red)';}else{state.fakeAnswers[inp.dataset.player]=v;inp.style.borderColor='';}});if(!ok){alert('全員の答えを入力してください！');return;}startVote();});
+function startVote(){const q=state.questions[state.currentQ];document.getElementById('vote-q-text').textContent=q.q;const choices=[{text:q.a,isReal:true,author:null}];state.players.forEach(p=>choices.push({text:state.fakeAnswers[p],isReal:false,author:p}));state.shuffledChoices=shuffle(choices);let voterIndex=0;function renderChoices(){const list=document.getElementById('choices-list');list.innerHTML='';state.shuffledChoices.forEach((c,i)=>{const div=document.createElement('div');div.className='choice-btn';div.innerHTML=`<div class="choice-index">${i+1}</div><div class="choice-text">${c.text}</div>`;div.addEventListener('click',()=>{if(voterIndex>=state.players.length)return;const voter=state.players[voterIndex];if(!c.isReal&&c.author===voter){alert('自分のウソ答えには投票できません！');return;}state.votes[voter]=i;voterIndex++;const status=document.getElementById('vote-status');if(voterIndex<state.players.length){status.textContent=`次は ${state.players[voterIndex]} が投票 (${voterIndex}/${state.players.length})`;}else{status.textContent='全員投票完了！';document.getElementById('btn-reveal').classList.remove('hidden');}renderChoices();});list.appendChild(div);});document.getElementById('vote-status').textContent=voterIndex<state.players.length?`まず ${state.players[0]} が投票 (0/${state.players.length})`:'全員投票完了！';}document.getElementById('btn-reveal').classList.add('hidden');renderChoices();show('screen-vote');}
+document.getElementById('btn-reveal').addEventListener('click',showReveal);
+function showReveal(){const q=state.questions[state.currentQ];document.getElementById('rev-q-text').textContent=q.q;document.getElementById('rev-answer').textContent=q.a;const roundPts={};state.players.forEach(p=>roundPts[p]=0);const revList=document.getElementById('reveal-choices');revList.innerHTML='';state.shuffledChoices.forEach((c,i)=>{const div=document.createElement('div');let cls='choice-btn';let badge='';if(c.isReal){cls+=' correct';badge='✅';}const voters=Object.entries(state.votes).filter(([,vi])=>vi===i).map(([v])=>v);if(c.isReal){voters.forEach(v=>{roundPts[v]+=1;});}else{voters.forEach(()=>{if(c.author)roundPts[c.author]+=1;});}div.className=cls;div.innerHTML=`<div class="choice-index">${i+1}</div><div style="flex:1"><div class="choice-text">${c.text}</div><div class="choice-author">${c.isReal?'✅ 本物の答え':`🤥 ${c.author}のウソ`}${voters.length>0?` ← ${voters.join('、')}が選んだ`:''}</div></div><div class="choice-badge">${badge}</div>`;revList.appendChild(div);});state.players.forEach(p=>state.scores[p]+=roundPts[p]);const rp=document.getElementById('round-points');rp.innerHTML=state.players.map(p=>`<div style="font-size:14px;color:var(--muted);margin-bottom:4px;">${p}: <span style="color:var(--yellow);font-weight:700;">+${roundPts[p]}pt</span></div>`).join('');renderScores('score-list');const nextBtn=document.getElementById('btn-next-q');state.currentQ++;if(state.currentQ<state.questions.length){nextBtn.textContent='次の問題へ →';nextBtn.onclick=startQuestion;}else{nextBtn.textContent='最終結果！';nextBtn.onclick=showFinal;}show('screen-reveal');}
+function renderScores(id){const el=document.getElementById(id);el.innerHTML='';const max=Math.max(...Object.values(state.scores),1);[...state.players].sort((a,b)=>state.scores[b]-state.scores[a]).forEach(p=>{const pct=(state.scores[p]/max*100).toFixed(0);const div=document.createElement('div');div.className='score-row';div.innerHTML=`<div class="score-name">${p}</div><div class="score-bar-wrap"><div class="score-bar" style="width:${pct}%"></div></div><div class="score-pts">${state.scores[p]}</div>`;el.appendChild(div);});}
+function showFinal(){const sorted=[...state.players].sort((a,b)=>state.scores[b]-state.scores[a]);document.getElementById('final-winner').textContent=`🥇 ${sorted[0]}`;document.getElementById('final-sub').textContent=`${state.scores[sorted[0]]}ポイントで優勝！`;renderScores('final-scores');show('screen-final');}
+document.getElementById('btn-again').addEventListener('click',()=>{state.scores={};state.players.forEach(p=>state.scores[p]=0);state.questions=shuffle([...QA]).slice(0,5);state.currentQ=0;startQuestion();});
+document.getElementById('btn-setup').addEventListener('click',()=>show('screen-setup'));
+</script>
+</body>
+</html>
