@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5秒チキン</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+:root {
+–bg: #0a0a0a;
+–surface: #111;
+–card: #161616;
+–border: #222;
+–accent: #ff2d55;
+–yellow: #ffd60a;
+–green: #30d158;
+–text: #f5f5f7;
+–muted: #555;
+–danger: #ff453a;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Noto Sans JP’, sans-serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* scanline effect */
+body::after {
+content: ‘’;
+position: fixed;
+inset: 0;
+background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+pointer-events: none;
+z-index: 100;
+}
+
+#app {
+max-width: 640px;
+margin: 0 auto;
+padding: 16px 16px 60px;
+position: relative;
+}
+
+/* HEADER */
+header {
+text-align: center;
+padding: 32px 0 24px;
+}
+.logo {
+font-family: ‘Teko’, sans-serif;
+font-size: clamp(56px, 14vw, 100px);
+font-weight: 700;
+letter-spacing: 4px;
+line-height: 0.9;
+color: var(–yellow);
+text-shadow: 0 0 40px rgba(255,214,10,0.4), 4px 4px 0 rgba(255,45,85,0.5);
+}
+.logo-sub {
+font-family: ‘Teko’, sans-serif;
+font-size: clamp(18px, 4vw, 28px);
+letter-spacing: 8px;
+color: var(–muted);
+margin-top: 4px;
+text-transform: uppercase;
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* CARDS */
+.card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 24px;
+margin-bottom: 14px;
+}
+
+/* BUTTONS */
+.btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: 14px 28px;
+border-radius: 12px;
+border: none;
+font-family: ‘Teko’, sans-serif;
+font-size: 22px;
+letter-spacing: 2px;
+cursor: pointer;
+transition: transform 0.1s, box-shadow 0.15s;
+position: relative;
+overflow: hidden;
+}
+.btn::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: linear-gradient(rgba(255,255,255,0.08), transparent);
+pointer-events: none;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(1px); }
+.btn-yellow {
+background: var(–yellow);
+color: #000;
+box-shadow: 0 4px 24px rgba(255,214,10,0.3);
+font-weight: 700;
+}
+.btn-red {
+background: var(–accent);
+color: #fff;
+box-shadow: 0 4px 24px rgba(255,45,85,0.3);
+}
+.btn-green {
+background: var(–green);
+color: #000;
+box-shadow: 0 4px 20px rgba(48,209,88,0.25);
+}
+.btn-ghost {
+background: transparent;
+border: 1px solid var(–border);
+color: var(–muted);
+}
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* MODE SELECT */
+.mode-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 12px;
+margin-bottom: 16px;
+}
+.mode-card {
+background: var(–surface);
+border: 2px solid var(–border);
+border-radius: 14px;
+padding: 20px 14px;
+text-align: center;
+cursor: pointer;
+transition: border-color 0.2s, transform 0.1s, background 0.2s;
+}
+.mode-card:hover { border-color: var(–yellow); transform: translateY(-3px); background: #1a1a1a; }
+.mode-icon { font-size: 36px; margin-bottom: 8px; }
+.mode-label { font-family: ‘Teko’, sans-serif; font-size: 20px; letter-spacing: 2px; color: var(–yellow); }
+.mode-desc { font-size: 11px; color: var(–muted); margin-top: 3px; }
+
+/* INPUTS */
+.field-label { font-size: 11px; letter-spacing: 3px; color: var(–muted); text-transform: uppercase; margin-bottom: 8px; }
+.input-field {
+width: 100%;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 13px 16px;
+font-family: ‘Noto Sans JP’, sans-serif;
+font-size: 15px;
+color: var(–text);
+outline: none;
+margin-bottom: 12px;
+transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(–yellow); }
+
+/* ROOM CODE */
+.room-code-wrap {
+background: #000;
+border: 2px solid var(–yellow);
+border-radius: 16px;
+padding: 24px;
+text-align: center;
+margin-bottom: 16px;
+position: relative;
+overflow: hidden;
+}
+.room-code-wrap::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: radial-gradient(ellipse at center, rgba(255,214,10,0.06), transparent 70%);
+}
+.room-code-eyebrow { font-size: 10px; letter-spacing: 5px; color: var(–yellow); font-family: ‘Teko’, sans-serif; margin-bottom: 6px; opacity: 0.7; }
+.room-code-number {
+font-family: ‘Teko’, sans-serif;
+font-size: 72px;
+font-weight: 700;
+letter-spacing: 12px;
+color: var(–yellow);
+line-height: 1;
+text-shadow: 0 0 30px rgba(255,214,10,0.5);
+}
+.room-code-hint { font-size: 11px; color: var(–muted); margin-top: 8px; }
+
+/* PLAYERS WAITING */
+.player-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.player-row {
+display: flex;
+align-items: center;
+gap: 12px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 10px 14px;
+}
+.player-dot { width: 8px; height: 8px; border-radius: 50%; background: var(–green); box-shadow: 0 0 8px var(–green); animation: glow 1.5s ease-in-out infinite alternate; flex-shrink: 0; }
+@keyframes glow { from { opacity: 1; } to { opacity: 0.3; } }
+.player-name { font-weight: 700; font-size: 15px; flex: 1; }
+.you-badge { font-size: 10px; letter-spacing: 2px; background: rgba(255,214,10,0.1); color: var(–yellow); border: 1px solid rgba(255,214,10,0.3); border-radius: 100px; padding: 2px 8px; font-family: ‘Teko’, sans-serif; }
+.status-line { font-size: 13px; color: var(–muted); text-align: center; margin: 8px 0; }
+
+/* COUNTDOWN */
+.countdown-wrap {
+text-align: center;
+padding: 40px 24px;
+}
+.countdown-num {
+font-family: ‘Teko’, sans-serif;
+font-size: 160px;
+font-weight: 700;
+color: var(–yellow);
+line-height: 1;
+text-shadow: 0 0 60px rgba(255,214,10,0.4);
+animation: countPulse 1s ease-in-out infinite;
+}
+@keyframes countPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+.countdown-label { font-family: ‘Teko’, sans-serif; font-size: 20px; letter-spacing: 6px; color: var(–muted); margin-top: 8px; }
+
+/* MAIN GAME */
+.game-wrap {
+text-align: center;
+padding: 20px 0;
+}
+.target-display {
+margin-bottom: 28px;
+}
+.target-label { font-size: 11px; letter-spacing: 4px; color: var(–muted); margin-bottom: 8px; }
+.target-num {
+font-family: ‘Teko’, sans-serif;
+font-size: 80px;
+font-weight: 700;
+color: var(–yellow);
+line-height: 1;
+text-shadow: 0 0 40px rgba(255,214,10,0.3);
+}
+.target-unit { font-family: ‘Teko’, sans-serif; font-size: 24px; color: var(–muted); margin-left: 4px; }
+
+.elapsed-display {
+font-family: ‘Teko’, sans-serif;
+font-size: 48px;
+color: var(–text);
+margin: 16px 0;
+min-height: 60px;
+letter-spacing: 2px;
+}
+.elapsed-display.running { color: var(–green); }
+
+/* BIG STOP BUTTON */
+.stop-btn {
+width: 200px;
+height: 200px;
+border-radius: 50%;
+background: radial-gradient(circle at 40% 35%, #ff4d6d, #ff2d55);
+border: 4px solid rgba(255,255,255,0.1);
+color: #fff;
+font-family: ‘Teko’, sans-serif;
+font-size: 36px;
+font-weight: 700;
+letter-spacing: 4px;
+cursor: pointer;
+transition: transform 0.1s, box-shadow 0.2s;
+box-shadow: 0 8px 40px rgba(255,45,85,0.5), inset 0 2px 0 rgba(255,255,255,0.15);
+position: relative;
+overflow: hidden;
+margin: 16px auto;
+display: block;
+}
+.stop-btn::before {
+content: ‘’;
+position: absolute;
+top: 8px; left: 8px; right: 8px; height: 40%;
+background: linear-gradient(rgba(255,255,255,0.12), transparent);
+border-radius: 50%;
+}
+.stop-btn:hover { transform: scale(1.05); box-shadow: 0 12px 50px rgba(255,45,85,0.6), inset 0 2px 0 rgba(255,255,255,0.15); }
+.stop-btn:active { transform: scale(0.95); }
+.stop-btn:disabled { background: #333; box-shadow: none; color: var(–muted); cursor: not-allowed; transform: none; }
+.stop-btn.stopped { background: radial-gradient(circle at 40% 35%, #4d4d4d, #333); box-shadow: none; }
+
+.hint-text { font-size: 13px; color: var(–muted); margin-top: 8px; }
+.submitted-msg { background: rgba(48,209,88,0.1); border: 1px solid rgba(48,209,88,0.3); border-radius: 10px; padding: 12px; color: var(–green); font-weight: 700; font-size: 14px; text-align: center; margin-top: 16px; }
+.waiting-msg { font-size: 13px; color: var(–muted); text-align: center; margin-top: 8px; }
+
+/* RESULT */
+.result-podium {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin: 16px 0;
+}
+.result-row {
+display: flex;
+align-items: center;
+gap: 14px;
+padding: 14px 16px;
+border-radius: 12px;
+border: 1px solid var(–border);
+background: var(–surface);
+position: relative;
+overflow: hidden;
+transition: transform 0.3s;
+}
+.result-row.rank-1 {
+background: linear-gradient(135deg, #1a1400, #110f00);
+border-color: var(–yellow);
+border-width: 2px;
+}
+.result-row.rank-last {
+background: linear-gradient(135deg, #1a0005, #110003);
+border-color: var(–accent);
+border-width: 2px;
+animation: shakeRow 0.5s ease-in-out 0.5s;
+}
+@keyframes shakeRow {
+0%,100%{transform:translateX(0);}
+20%{transform:translateX(-6px);}
+40%{transform:translateX(6px);}
+60%{transform:translateX(-4px);}
+80%{transform:translateX(4px);}
+}
+.result-rank {
+font-family: ‘Teko’, sans-serif;
+font-size: 28px;
+width: 40px;
+text-align: center;
+flex-shrink: 0;
+}
+.result-info { flex: 1; }
+.result-player-name { font-weight: 700; font-size: 16px; }
+.result-time {
+font-family: ‘Teko’, sans-serif;
+font-size: 14px;
+color: var(–muted);
+margin-top: 2px;
+}
+.result-diff {
+font-family: ‘Teko’, sans-serif;
+font-size: 28px;
+text-align: right;
+}
+.result-diff.good { color: var(–green); }
+.result-diff.ok { color: var(–yellow); }
+.result-diff.bad { color: var(–accent); }
+
+.loser-banner {
+background: linear-gradient(135deg, rgba(255,45,85,0.15), rgba(255,45,85,0.05));
+border: 2px solid var(–accent);
+border-radius: 16px;
+padding: 24px;
+text-align: center;
+margin-bottom: 16px;
+animation: bannerIn 0.5s ease-out;
+}
+@keyframes bannerIn { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+.loser-emoji { font-size: 48px; margin-bottom: 8px; }
+.loser-title {
+font-family: ‘Teko’, sans-serif;
+font-size: 40px;
+letter-spacing: 3px;
+color: var(–accent);
+line-height: 1;
+}
+.loser-name {
+font-family: ‘Teko’, sans-serif;
+font-size: 56px;
+letter-spacing: 4px;
+color: #fff;
+line-height: 1;
+margin-top: 4px;
+}
+.loser-sub { font-size: 13px; color: var(–muted); margin-top: 8px; }
+
+.h2 {
+font-family: ‘Teko’, sans-serif;
+font-size: 22px;
+letter-spacing: 3px;
+color: var(–yellow);
+margin-bottom: 14px;
+padding-bottom: 8px;
+border-bottom: 1px solid var(–border);
+}
+
+.mt16 { margin-top: 16px; }
+.mt8 { margin-top: 8px; }
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+</style>
+
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">5秒</div>
+    <div class="logo-sub">CHICKEN RACE</div>
+  </header>
+
+  <!-- LOBBY -->
+
+  <div id="screen-lobby" class="screen active">
+    <div class="card">
+      <div class="h2">ENTRY</div>
+      <div class="mode-grid">
+        <div class="mode-card" id="btn-mode-host">
+          <div class="mode-icon">👑</div>
+          <div class="mode-label">HOST</div>
+          <div class="mode-desc">ルームを作る</div>
+        </div>
+        <div class="mode-card" id="btn-mode-join">
+          <div class="mode-icon">🎮</div>
+          <div class="mode-label">JOIN</div>
+          <div class="mode-desc">コードで入る</div>
+        </div>
+      </div>
+    </div>
+
+```
+<div class="card hidden" id="host-form">
+  <div class="h2">👑 HOST</div>
+  <div class="field-label">あなたの名前</div>
+  <input class="input-field" id="host-name" placeholder="名前を入力…" maxlength="10">
+  <button class="btn btn-yellow btn-full" id="btn-create-room" style="font-size:20px;padding:14px;">ルームを作成！</button>
+</div>
+
+<div class="card hidden" id="join-form">
+  <div class="h2">🎮 JOIN</div>
+  <div class="field-label">あなたの名前</div>
+  <input class="input-field" id="join-name" placeholder="名前を入力…" maxlength="10">
+  <div class="field-label">ルームコード</div>
+  <input class="input-field" id="join-code" placeholder="4桁" maxlength="4" style="font-family:'Teko',sans-serif;font-size:32px;letter-spacing:8px;text-align:center;">
+  <button class="btn btn-green btn-full" id="btn-join-room" style="font-size:20px;padding:14px;">参加する！</button>
+</div>
+```
+
+  </div>
+
+  <!-- WAITING -->
+
+  <div id="screen-waiting" class="screen">
+    <div class="room-code-wrap">
+      <div class="room-code-eyebrow">ROOM CODE</div>
+      <div class="room-code-number" id="display-room-code">----</div>
+      <div class="room-code-hint">このコードを友達に教えよう</div>
+    </div>
+    <div class="card">
+      <div class="h2">PLAYERS <span id="player-count-badge" style="color:var(--muted);font-size:16px;"></span></div>
+      <div class="player-list" id="player-list"></div>
+      <div class="status-line" id="waiting-status">友達の参加を待っています…</div>
+      <button class="btn btn-yellow btn-full mt16 hidden" id="btn-start" style="font-size:20px;padding:14px;">START！</button>
+    </div>
+  </div>
+
+  <!-- COUNTDOWN -->
+
+  <div id="screen-countdown" class="screen">
+    <div class="card" style="text-align:center;padding:40px 24px;">
+      <div class="countdown-wrap">
+        <div class="countdown-num" id="countdown-num">3</div>
+        <div class="countdown-label">GET READY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+
+  <div id="screen-game" class="screen">
+    <div class="card">
+      <div class="game-wrap">
+        <div class="target-display">
+          <div class="target-label">TARGET</div>
+          <div><span class="target-num">5</span><span class="target-unit">秒</span></div>
+        </div>
+        <div class="elapsed-display" id="elapsed-display">準備完了！</div>
+        <button class="stop-btn" id="stop-btn">STOP</button>
+        <div class="hint-text" id="game-hint">ボタンを押してスタート、もう一度押して止める</div>
+      </div>
+      <div class="hidden submitted-msg" id="submitted-msg">✅ タイムを記録しました！みんなの結果を待っています…</div>
+      <div class="hidden waiting-msg" id="waiting-count"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+
+  <div id="screen-result" class="screen">
+    <div class="loser-banner" id="loser-banner">
+      <div class="loser-emoji">💀</div>
+      <div class="loser-title">罰ゲーム確定</div>
+      <div class="loser-name" id="loser-name"></div>
+      <div class="loser-sub" id="loser-sub"></div>
+    </div>
+    <div class="card">
+      <div class="h2">RANKING</div>
+      <div class="result-podium" id="result-podium"></div>
+    </div>
+    <div class="flex-gap mt16">
+      <button class="btn btn-yellow hidden" style="flex:1;font-size:18px;" id="btn-play-again">もう一回！</button>
+      <button class="btn btn-ghost btn-full" id="btn-back-lobby" style="font-size:16px;padding:12px;">ロビーに戻る</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBE_ne6ElneyDVxsaOwUokGgwVCYGSaBJM",
+  authDomain: "lunch-games-495915.firebaseapp.com",
+  databaseURL: "https://lunch-games-1d822-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lunch-games-495915",
+  storageBucket: "lunch-games-495915.firebasestorage.app",
+  messagingSenderId: "738616922043",
+  appId: "1:738616922043:web:ce6a481173652509d53e9e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const TARGET = 5000; // 5 seconds in ms
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function genCode(){return Math.floor(1000+Math.random()*9000).toString();}
+function genId(){return Math.random().toString(36).slice(2,10);}
+
+let myId=genId(), myName='', roomCode='', isHost=false, roomRef=null, unsubscribers=[];
+let startTime=null, stopped=false;
+
+function unsub(){unsubscribers.forEach(u=>u());unsubscribers=[];}
+
+// MODE
+document.getElementById('btn-mode-host').addEventListener('click',()=>{
+  document.getElementById('host-form').classList.remove('hidden');
+  document.getElementById('join-form').classList.add('hidden');
+});
+document.getElementById('btn-mode-join').addEventListener('click',()=>{
+  document.getElementById('join-form').classList.remove('hidden');
+  document.getElementById('host-form').classList.add('hidden');
+});
+
+// CREATE ROOM
+document.getElementById('btn-create-room').addEventListener('click',async()=>{
+  myName=document.getElementById('host-name').value.trim();
+  if(!myName){alert('名前を入力してください！');return;}
+  roomCode=genCode();isHost=true;
+  roomRef=ref(db,`chicken-rooms/${roomCode}`);
+  await set(roomRef,{
+    host:myId,status:'waiting',
+    players:{[myId]:{name:myName,joinedAt:Date.now()}},
+    times:{}
+  });
+  enterWaiting();
+});
+
+// JOIN ROOM
+document.getElementById('btn-join-room').addEventListener('click',async()=>{
+  myName=document.getElementById('join-name').value.trim();
+  const code=document.getElementById('join-code').value.trim();
+  if(!myName){alert('名前を入力してください！');return;}
+  if(code.length!==4){alert('4桁のコードを入力してください！');return;}
+  roomCode=code;roomRef=ref(db,`chicken-rooms/${roomCode}`);
+  const snap=await get(roomRef);
+  if(!snap.exists()){alert('ルームが見つかりません！');return;}
+  if(snap.val().status!=='waiting'){alert('このルームはすでに開始されています！');return;}
+  await update(ref(db,`chicken-rooms/${roomCode}/players/${myId}`),{name:myName,joinedAt:Date.now()});
+  isHost=false;enterWaiting();
+});
+
+function enterWaiting(){
+  document.getElementById('display-room-code').textContent=roomCode;
+  show('screen-waiting');
+  if(isHost)document.getElementById('btn-start').classList.remove('hidden');
+
+  const u1=onValue(ref(db,`chicken-rooms/${roomCode}/players`),snap=>{
+    const players=snap.val()||{};
+    const list=document.getElementById('player-list');list.innerHTML='';
+    const entries=Object.entries(players).sort((a,b)=>a[1].joinedAt-b[1].joinedAt);
+    document.getElementById('player-count-badge').textContent=`${entries.length}人`;
+    entries.forEach(([id,p])=>{
+      const div=document.createElement('div');div.className='player-row';
+      div.innerHTML=`<div class="player-dot"></div><div class="player-name">${p.name}</div>${id===myId?'<div class="you-badge">YOU</div>':''}`;
+      list.appendChild(div);
+    });
+    document.getElementById('waiting-status').textContent=entries.length>=2?`${entries.length}人が参加中！`:'あと1人以上必要です…';
+  });
+
+  const u2=onValue(ref(db,`chicken-rooms/${roomCode}/status`),snap=>{
+    if(snap.val()==='countdown')startCountdown();
+    if(snap.val()==='playing')enterGame();
+    if(snap.val()==='result')enterResult();
+  });
+  unsubscribers.push(u1,u2);
+}
+
+document.getElementById('btn-start').addEventListener('click',async()=>{
+  const snap=await get(ref(db,`chicken-rooms/${roomCode}/players`));
+  if(Object.keys(snap.val()||{}).length<2){alert('2人以上必要です！');return;}
+  await update(roomRef,{status:'countdown',times:{}});
+});
+
+function startCountdown(){
+  unsub();show('screen-countdown');
+  let count=3;
+  document.getElementById('countdown-num').textContent=count;
+  const iv=setInterval(()=>{
+    count--;
+    if(count>0){
+      document.getElementById('countdown-num').textContent=count;
+    } else {
+      clearInterval(iv);
+      document.getElementById('countdown-num').textContent='GO!';
+      document.getElementById('countdown-num').style.color='var(--green)';
+      setTimeout(async()=>{
+        if(isHost) await update(roomRef,{status:'playing'});
+      },600);
+    }
+  },1000);
+  const u1=onValue(ref(db,`chicken-rooms/${roomCode}/status`),snap=>{
+    if(snap.val()==='playing')enterGame();
+  });
+  unsubscribers.push(u1);
+}
+
+function enterGame(){
+  unsub();show('screen-game');
+  startTime=null;stopped=false;
+  const stopBtn=document.getElementById('stop-btn');
+  const elapsedEl=document.getElementById('elapsed-display');
+  const hintEl=document.getElementById('game-hint');
+  stopBtn.disabled=false;
+  stopBtn.classList.remove('stopped');
+  document.getElementById('submitted-msg').classList.add('hidden');
+  document.getElementById('waiting-count').classList.add('hidden');
+  elapsedEl.textContent='準備完了！';
+  elapsedEl.className='elapsed-display';
+  hintEl.textContent='ボタンを押してスタート、もう一度押して止める';
+  let rafId=null;
+
+  stopBtn.onclick=async()=>{
+    if(!startTime){
+      // START
+      startTime=Date.now();
+      elapsedEl.className='elapsed-display running';
+      hintEl.textContent='5秒だと思ったら止めろ！';
+      const update_display=()=>{
+        if(stopped)return;
+        const elapsed=(Date.now()-startTime)/1000;
+        elapsedEl.textContent=elapsed.toFixed(2)+'s';
+        rafId=requestAnimationFrame(update_display);
+      };
+      rafId=requestAnimationFrame(update_display);
+    } else if(!stopped){
+      // STOP
+      stopped=true;
+      const elapsed=Date.now()-startTime;
+      if(rafId)cancelAnimationFrame(rafId);
+      elapsedEl.textContent=(elapsed/1000).toFixed(3)+'s';
+      elapsedEl.className='elapsed-display';
+      stopBtn.classList.add('stopped');
+      stopBtn.disabled=true;
+      // save to firebase
+      await set(ref(db,`chicken-rooms/${roomCode}/times/${myId}`),elapsed);
+      document.getElementById('submitted-msg').classList.remove('hidden');
+      document.getElementById('waiting-count').classList.remove('hidden');
+    }
+  };
+
+  const u1=onValue(ref(db,`chicken-rooms/${roomCode}/times`),async snap=>{
+    const times=snap.val()||{};
+    const pSnap=await get(ref(db,`chicken-rooms/${roomCode}/players`));
+    const players=pSnap.val()||{};
+    const total=Object.keys(players).length;
+    const submitted=Object.keys(times).length;
+    document.getElementById('waiting-count').textContent=`${submitted}/${total}人が記録済み`;
+    if(isHost&&submitted>=total){
+      await update(roomRef,{status:'result'});
+    }
+  });
+
+  const u2=onValue(ref(db,`chicken-rooms/${roomCode}/status`),snap=>{
+    if(snap.val()==='result')enterResult();
+  });
+  unsubscribers.push(u1,u2);
+}
+
+async function enterResult(){
+  unsub();show('screen-result');
+  const snap=await get(ref(db,`chicken-rooms/${roomCode}`));
+  const data=snap.val();
+  const players=data.players||{};
+  const times=data.times||{};
+
+  // sort by distance from TARGET
+  const sorted=Object.entries(times)
+    .map(([pid,t])=>({pid,t,diff:Math.abs(t-TARGET)}))
+    .sort((a,b)=>a.diff-b.diff);
+
+  // loser = worst
+  const loser=sorted[sorted.length-1];
+  const loserName=players[loser.pid]?.name||'？';
+  document.getElementById('loser-name').textContent=loserName;
+  document.getElementById('loser-sub').textContent=`目標5.000秒に対して ${((loser.t)/1000).toFixed(3)}秒 — 誤差${(loser.diff/1000).toFixed(3)}秒`;
+
+  const podium=document.getElementById('result-podium');podium.innerHTML='';
+  const rankEmoji=['🥇','🥈','🥉'];
+  sorted.forEach((r,i)=>{
+    const p=players[r.pid];
+    const isLast=i===sorted.length-1;
+    const div=document.createElement('div');
+    div.className='result-row'+(i===0?' rank-1':isLast?' rank-last':'');
+    const diffSec=(r.diff/1000).toFixed(3);
+    const tSec=(r.t/1000).toFixed(3);
+    const diffClass=r.diff<200?'good':r.diff<500?'ok':'bad';
+    const rankLabel=rankEmoji[i]||(isLast?'💀':`${i+1}`);
+    div.innerHTML=`
+      <div class="result-rank">${rankLabel}</div>
+      <div class="result-info">
+        <div class="result-player-name">${p?.name||r.pid}${r.pid===myId?' 👈':''}</div>
+        <div class="result-time">${tSec}秒</div>
+      </div>
+      <div class="result-diff ${diffClass}">±${diffSec}s</div>
+    `;
+    podium.appendChild(div);
+    // stagger animation
+    div.style.opacity='0';div.style.transform='translateY(20px)';
+    setTimeout(()=>{div.style.transition='all 0.4s ease';div.style.opacity='1';div.style.transform='none';},(i+1)*150);
+  });
+
+  if(isHost)document.getElementById('btn-play-again').classList.remove('hidden');
+}
+
+document.getElementById('btn-play-again').addEventListener('click',async()=>{
+  await update(roomRef,{status:'countdown',times:{}});
+  startCountdown();
+});
+
+document.getElementById('btn-back-lobby').addEventListener('click',()=>{
+  unsub();
+  if(isHost)remove(roomRef);
+  location.reload();
+});
+</script>
+
+</body>
+</html>
