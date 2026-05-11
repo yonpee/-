@@ -366,7 +366,7 @@ document.getElementById('btn-start-game').addEventListener('click',async()=>{
   const players=snap.val()||{};
   if(Object.keys(players).length<3){alert('3人以上必要です！');return;}
   const ids=shuffle(Object.keys(players));
-  await update(roomRef,{status:'role',impostor:ids[0],readyCount:0,drawings:null,votes:null});
+  await update(roomRef,{status:'role',impostor:ids[0],readyCount:0,ready:null,drawings:null,votes:null});
 });
 
 async function enterRole(){
@@ -393,21 +393,25 @@ async function enterRole(){
     ?'⚠️ あなたはインポスター！クルーに気づかれないよう、似てるけど違うテーマを描いてください。'
     :'✅ あなたはクルー！お題の絵を丁寧に描いてください。インポスターを見つけよう！';
   const u1=onValue(ref(db,`brush-rooms/${roomCode}/status`),snap=>{if(snap.val()==='drawing')enterDraw();});
-  unsubscribers.push(u1);
+  // ホストがready状態を監視して全員揃ったらdrawingに移行
+  const u2=onValue(ref(db,`brush-rooms/${roomCode}/ready`),async snap=>{
+    if(!isHost)return;
+    const ready=snap.val()||{};
+    const pSnap=await get(ref(db,`brush-rooms/${roomCode}/players`));
+    const total=Object.keys(pSnap.val()||{}).length;
+    if(Object.keys(ready).length>=total){
+      await update(roomRef,{status:'drawing'});
+    }
+  });
+  unsubscribers.push(u1,u2);
   show('screen-role');
 }
 
 document.getElementById('btn-role-ok').addEventListener('click',async()=>{
   document.getElementById('btn-role-ok').disabled=true;
   document.getElementById('role-wait-status').classList.remove('hidden');
-  const cur=(await get(ref(db,`brush-rooms/${roomCode}/readyCount`))).val()||0;
-  const newCount=cur+1;
-  await update(roomRef,{readyCount:newCount});
-  const snap=await get(ref(db,`brush-rooms/${roomCode}`));
-  const total=Object.keys(snap.val().players||{}).length;
-  if(isHost&&newCount>=total){
-    await update(roomRef,{status:'drawing'});
-  }
+  // 個別にready状態を記録（カウント競合を防ぐ）
+  await set(ref(db,`brush-rooms/${roomCode}/ready/${myId}`),true);
 });
 
 function enterDraw(){
@@ -599,7 +603,7 @@ document.getElementById('btn-play-again').addEventListener('click',async()=>{
   const players=snap.val()||{};
   const pair=THEME_PAIRS[Math.floor(Math.random()*THEME_PAIRS.length)];
   const ids=shuffle(Object.keys(players));
-  await update(roomRef,{status:'role',crewTheme:pair[0],impostorTheme:pair[1],impostor:ids[0],readyCount:0,drawings:null,votes:null});
+  await update(roomRef,{status:'role',crewTheme:pair[0],impostorTheme:pair[1],impostor:ids[0],readyCount:0,ready:null,drawings:null,votes:null});
   enterRole();
 });
 document.getElementById('btn-back-lobby').addEventListener('click',()=>{unsub();if(isHost)remove(roomRef);location.reload();});
